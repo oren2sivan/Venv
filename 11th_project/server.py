@@ -16,14 +16,27 @@ def establish(ip,port):
 
 
 def authenticate(socket1):
-    username=socket1.recv(1024).decode()
-    hash_passwd=socket1.recv(1024).decode()
-    result=db.find_user(username,hash_passwd)
-    if result==True:
-        socket1.send("1".encode())
-    else:
-        socket1.send("0".encode())
+    max_attempts = 4
+    for attempt in range(max_attempts):
+        username = socket1.recv(1024).decode()
+        hash_passwd = socket1.recv(1024).decode()
+        result = db.find_user(username, hash_passwd)
+        if result:
+            socket1.send("1".encode())
+            return True
+        else:
+
+            socket1.send("0".encode())
+            if attempt < max_attempts :
+                print("Invalid credentials. try again")
+            else:
+                return False
+    return False
     
+
+
+
+
 def execute_command(socket1):
     command=socket1.recv(1024).decode()
     result = sp.run(command, shell=True, capture_output=True, text=True)
